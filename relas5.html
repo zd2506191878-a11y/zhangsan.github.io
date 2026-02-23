@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>世界塑：25问创世之旅</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;600&display=swap');
+        :root { --slate-950: #020617; }
+        body { font-family: 'Noto Serif SC', serif; background-color: var(--slate-950); color: #f8fafc; margin: 0; touch-action: manipulation; -webkit-font-smoothing: antialiased; }
+        .bg-ethereal { background: radial-gradient(circle at center, #0f172a 0%, #020617 100%); height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+        .screen { height: 100%; display: flex; flex-direction: column; justify-content: center; padding: 2rem; }
+        .option-btn { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); -webkit-tap-highlight-color: transparent; }
+        .option-btn:active { background: rgba(255, 255, 255, 0.1); transform: scale(0.98); }
+        .result-scroll { flex: 1; overflow-y: auto; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
+        ::-webkit-scrollbar { width: 0px; }
+        .fade-in { animation: fadeIn 1s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+    <div class="bg-ethereal">
+        <div id="app" class="w-full h-full max-w-lg mx-auto relative">
+            
+            <div id="start-screen" class="screen text-center fade-in">
+                <h1 class="text-4xl mb-6 tracking-[0.5em] font-bold bg-gradient-to-b from-white to-slate-500 bg-clip-text text-transparent">世界塑</h1>
+                <p class="text-slate-500 mb-14 tracking-widest text-[10px] leading-loose">
+                    25 问创世之旅 · 重塑你的灵魂倒影 <br>
+                    — 愿你在荒芜中，得见繁花 —
+                </p>
+                <button onclick="startQuiz()" class="mx-auto w-44 py-4 border border-slate-700 rounded-full text-[10px] tracking-[0.5em] uppercase hover:bg-white hover:text-black transition-all">开启实验</button>
+            </div>
+
+            <div id="quiz-screen" class="hidden screen">
+                <div id="progress" class="text-[9px] text-slate-600 mb-8 tracking-[0.3em] font-sans">SEQUENCE 1 / 25</div>
+                <h2 id="question-text" class="text-lg mb-10 leading-relaxed text-slate-100 min-h-[120px] flex items-center"></h2>
+                <div id="options-container" class="space-y-3.5"></div>
+            </div>
+
+            <div id="result-screen" class="hidden h-full flex flex-col p-6 pt-12">
+                <div class="result-scroll">
+                    <div class="text-[9px] tracking-[0.5em] text-blue-400 mb-6 uppercase text-center font-sans">灵魂镜像已显影</div>
+                    <h2 id="result-title" class="text-2xl mb-4 text-white font-bold tracking-widest text-center"></h2>
+                    <p id="result-desc" class="italic text-slate-400 mb-8 text-center text-xs leading-relaxed border-b border-white/5 pb-8"></p>
+                    
+                    <div class="space-y-10 text-xs tracking-wide text-slate-300">
+                        <div class="bg-white/[0.03] p-6 rounded-2xl border border-white/5">
+                            <span class="text-slate-600 block mb-3 text-[9px] uppercase tracking-widest font-sans">你的世界构成</span>
+                            <p id="result-composition" class="text-slate-200 leading-loose"></p>
+                        </div>
+                        <div class="space-y-10">
+                            <p id="result-analysis" class="text-[1.05rem] text-white font-medium leading-relaxed"></p>
+                            <div id="detailed-images" class="space-y-10 border-l border-white/10 pl-5 leading-loose"></div>
+                        </div>
+                    </div>
+                    <div class="h-28"></div> 
+                </div>
+                <div class="py-6 text-center shrink-0">
+                    <button onclick="location.reload()" class="text-[9px] text-slate-700 underline underline-offset-8 tracking-[0.4em] uppercase">重新开启轮回</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // 完整 25 道测试题数据 
+        const questions = [
+            { t: "Q1. 破晓：当你的世界第一次拥有意识，你最先感知到的是什么？", o: [{l:"A. 一阵无方向的旷野之风，自由但孤独。", s:{E:1, P:1}}, {l:"B. 泥土深处的心跳，缓慢、沉稳且确凿。", s:{I:1, S:1}}, {l:"C. 远处一颗星辰的闪烁，仿佛在等待回应。", s:{E:1, N:1}}, {l:"D. 绝对的宁静与黑暗，一切都尚未被定义。", s:{I:1, J:1}}]},
+            { t: "Q2. 造物：在这个荒芜的世界里，你被赋予了创造第一件“物品”的权力，你会选择？", o: [{l:"A. 一座永远指示着绝对坐标的【远洋灯塔】。", s:{J:1, S:1}}, {l:"B. 一面能够映照出凝视者内心欲望的【幻影镜】。", s:{F:1, I:1}}, {l:"C. 一本会自动记录所有消逝之物的【无字书】。", s:{N:1, P:1}}, {l:"D. 一组精密咬合、不知疲倦运转的【黄铜齿轮】。", s:{T:1, J:1}}]},
+            { t: "Q3. 季候：在你的世界里，占据统治地位的漫长季节是什么样的？", o: [{l:"A. 极光长明的凛冬，冰冷但有着极其纯粹的秩序。", s:{I:1, T:1}}, {l:"B. 万物疯长的仲夏，喧闹、热烈且充满变数。", s:{E:1, P:1}}, {l:"C. 永远在落叶的深秋，带着某种宿命的诗意与感伤。", s:{N:1, F:1}}, {l:"D. 严丝合缝交替的匀称四季，一切都在掌控之中。", s:{S:1, J:1}}]},
+            { t: "Q4. 边界：你的世界边缘，常年被一种自然现象笼罩，它是？", o: [{l:"A. 终年不化的冰川，冷峻地拒绝一切轻易的靠近。", s:{I:1, T:1}}, {l:"B. 变幻莫测的极光，美丽、迷人但无法被触碰。", s:{E:1, N:1}}, {l:"C. 绵延无尽的森林，悄无声息地吞噬并同化外来者。", s:{I:1, F:1}}, {l:"D. 燃烧的环形火山，用极度热烈的方式彰显存在。", s:{E:1, P:1}}]},
+            { t: "Q5. 语言：在你的世界里，最初的万物是如何交流的？", o: [{l:"A. 通过精密复杂的几何阵列，准确无误但没有温度。", s:{T:1, S:1}}, {l:"B. 通过无形的梦境网络，所有的情绪与隐痛都能被彼此感知。", s:{F:1, N:1}}, {l:"C. 只有在风刮过峡谷时产生的偶然共鸣，孤独而深邃。", s:{I:1, P:1}}, {l:"D. 由你颁布的一套严苛词典，所有存在都必须遵守。", s:{E:1, J:1}}]},
+            { t: "Q6. 繁衍：你的世界迎来了第一次生命的爆发，你希望它们如何演化？", o: [{l:"A. 朝着绝对的效率与理性进化，剥离多余的脆弱情感。", s:{T:1, J:1}}, {l:"B. 自由地变异出千奇百怪的形态，哪怕伴随着混乱。", s:{E:1, P:1}}, {l:"C. 保持着最原始纯粹的形态，与你的世界安静地共生。", s:{I:1, S:1}}, {l:"D. 进化出极高的精神力，最终能与你进行灵魂对话。", s:{N:1, F:1}}]},
+            { t: "Q7. 闯入者：一只流浪的飞鸟误入了你的世界，并在你这里停歇。你会？", o: [{l:"A. 默默注视它，为它提供庇护，但不去打扰。", s:{I:1, P:1}}, {l:"B. 试图理解它的语言，想知道它看过什么风景。", s:{E:1, N:1}}, {l:"C. 感到一丝被打扰的局促，但又隐隐期待它留下。", s:{I:1, F:1}}, {l:"D. 将它视为世界运转的一部分，任其自生自灭。", s:{T:1, J:1}}]},
+            { t: "Q8. 星空：仰望你世界的夜空，那些星辰是按照什么逻辑排列的？", o: [{l:"A. 极其严密的几何图纸，代表着不容置疑的物理法则。", s:{T:1, S:1}}, {l:"B. 随着你情绪的起伏而不断变幻色彩的流沙。", s:{F:1, P:1}}, {l:"C. 稀疏而极其明亮的几颗孤星，彼此遥远地对望着。", s:{I:1, N:1}}, {l:"D. 形成庞大而璀璨的星系旋臂，牵引着所有的目光。", s:{E:1, J:1}}]},
+            { t: "Q9. 遗迹：在你世界的深处，有一处远古遗迹，里面供奉着：", o: [{l:"A. 一座巨大的天平，衡量着世间的绝对因果与罪罚。", s:{T:1, J:1}}, {l:"B. 一面没有倒影的水镜，只映照出凝视者的灵魂深渊。", s:{I:1, N:1}}, {l:"C. 燃烧着永不熄灭的圣火，吸引着无数朝圣的飞蛾。", s:{E:1, F:1}}, {l:"D. 一堆散乱的机械残骸，记录一次狂热但失败的进化。", s:{S:1, P:1}}]},
+            { t: "Q10. 灾变：面对不可逆的陨石雨，你会拼死护住什么？", o: [{l:"A. 维系世界运转的“核心法则”与秩序。", s:{T:1, J:1}}, {l:"B. 那些最脆弱但美丽的“生命火种”。", s:{F:1, S:1}}, {l:"C. 刻在石碑上的“历史与记忆”。", s:{S:1, J:1}}, {l:"D. 一把通往其他未知维度的“钥匙”。", s:{N:1, P:1}}]},
+            { t: "Q11. 裂痕：你的世界出现了一道无法弥合的裂痕，第一反应是：", o: [{l:"A. 立刻启动紧急预案，用最冷酷且高效的方式填补它。", s:{T:1, J:1}}, {l:"B. 感到一种深深的悲哀，为世界不再完美而痛苦。", s:{F:1, J:1}}, {l:"C. 凝视深渊，好奇裂痕背后隐藏的新世界。", s:{N:1, P:1}}, {l:"D. 顺其自然，认为毁灭和破碎本身就是演化的一部分。", s:{S:1, P:1}}]},
+            { t: "Q12. 祭典：你的世界每隔百年会举行一次祭典，高潮是：", o: [{l:"A. 点燃一座巨大的高塔，向整个宇宙宣告你的存在。", s:{E:1, N:1}}, {l:"B. 所有生灵陷入沉睡，在集体潜意识中共享记忆。", s:{I:1, F:1}}, {l:"C. 一场不设限的狂欢，所有的规则在这一刻被打破。", s:{E:1, P:1}}, {l:"D. 进行一次最严密的资源清点与未来沙盘推演。", s:{T:1, J:1}}]},
+            { t: "Q13. 倒影：当你俯瞰湖泊，你在水里看到的“自己”是：", o: [{l:"A. 一张充满威严，仿佛能操控一切的脸庞。", s:{E:1, J:1}}, {l:"B. 一双深邃但疲惫，承载了太多故事的眼睛。", s:{I:1, F:1}}, {l:"C. 模糊不清的轮廓，你并不在乎自己的确切形态。", s:{P:1, N:1}}, {l:"D. 一个完美无瑕，像精密雕塑般的倒影。", s:{T:1, S:1}}]},
+            { t: "Q14. 剥夺：为了长久和平献祭掉一项特质，你会交出？", o: [{l:"A. 感受痛苦与悲伤的能力，哪怕同时失去狂喜。", s:{T:1, E:1}}, {l:"B. 预见未来的直觉，从此只能活在当下的现实。", s:{S:1, P:1}}, {l:"C. 对完美的偏执追求，接受一切混沌与残缺。", s:{P:1, F:1}}, {l:"D. 被所有人铭记的特权，甘愿成为世界背后的隐形人。", s:{I:1, J:1}}]},
+            { t: "Q15. 沉睡：漫长的岁月让你疲惫，沉睡前你化作了什么？", o: [{l:"A. 盘踞在深渊巨穴中的【黑龙】。", s:{T:1, I:1}}, {l:"B. 冰原上独行的【雪狼】。", s:{J:1, S:1}}, {l:"C. 挂在枯枝上的【飞蛾】。", s:{F:1, E:1}}, {l:"D. 沉入万米海沟的【巨鲸】。", s:{N:1, I:1}}]},
+            { t: "Q16. 宝藏：在你世界的绝对中心，你埋藏了什么？", o: [{l:"A. 一本写满你所有软弱、犹豫与眼泪的日记本。", s:{I:1, F:1}}, {l:"B. 能够瞬间摧毁并重启这个世界的引爆器。", s:{T:1, P:1}}, {l:"C. 能够让所有生灵获得永生的圣杯。", s:{E:1, N:1}}, {l:"D. 一枚记录着世界所有数据的微缩芯片。", s:{S:1, J:1}}]},
+            { t: "Q17. 唤醒：百年后，是什么将你从沉睡中唤醒？", o: [{l:"A. 一个与你频率完全共振的灵魂的呼唤。", s:{F:1, N:1}}, {l:"B. 一场危及到你领地核心的巨大危机。", s:{J:1, E:1}}, {l:"C. 仅仅是因为你睡够了。", s:{P:1, S:1}}, {l:"D. 命中注定的时间到了，齿轮再次咬合。", s:{T:1, J:1}}]},
+            { t: "Q18. 审判：如果世界里出现了试图破坏规则的“异端”：", o: [{l:"A. 毫不留情地将其抹杀，维护绝对纯洁与秩序。", s:{T:1, J:1}}, {l:"B. 观察它的动机，也许它能带来新变量。", s:{N:1, P:1}}, {l:"C. 将其放逐到世界的边缘，让它自生自灭。", s:{I:1, S:1}}, {l:"D. 试图教化它，用你的力量让它重新融入。", s:{E:1, F:1}}]},
+            { t: "Q19. 映射：如果有人站在你的世界中心，他们会有什么感受？", o: [{l:"A. 感到极致的渺小与敬畏，仿佛面对神明。", s:{T:1, N:1}}, {l:"B. 感到前所未有的安全与宁静，仿佛回到了母体。", s:{F:1, S:1}}, {l:"C. 感到一种随时会破碎的凄美与易逝感。", s:{F:1, P:1}}, {l:"D. 感到血液沸腾，充满了想要征服的欲望。", s:{E:1, J:1}}]},
+            { t: "Q20. 礼物：你最希望拆开看到的平行世界礼物是：", o: [{l:"A. 一本记录了宇宙终极真理与逻辑的解析手稿。", s:{T:1, N:1}}, {l:"B. 一颗跳动着的、充满了陌生热烈情感的心脏。", s:{F:1, E:1}}, {l:"C. 一件能够完美抵御外部入侵的无缝铠甲。", s:{I:1, S:1}}, {l:"D. 一把能随机开启未知维度的盲盒钥匙。", s:{P:1, N:1}}]},
+            { t: "Q21. 访客：人类走进你的世界，你希望他对说的第一句话是：", o: [{l:"A. “我终于明白了这伟大秩序背后的宏图。”", s:{T:1, J:1}}, {l:"B. “你的孤独，原来和我一样。”", s:{I:1, F:1}}, {l:"C. “这里比我想象的还要疯狂和自由！”", s:{E:1, P:1}}, {l:"D. “我已经准备好跟随你的指引了。”", s:{E:1, N:1}}]},
+            { t: "Q22. 馈赠：当这个人类离开时，你会送他什么？", o: [{l:"A. 一把永远不会生锈，帮他披荆斩棘的利刃。", s:{S:1, T:1}}, {l:"B. 一缕能让他在绝望时梦见这里的微风。", s:{N:1, F:1}}, {l:"C. 一个装满独特法则，永远指向正确的罗盘。", s:{J:1, S:1}}, {l:"D. 什么都不给，这里的体验已是最大的馈赠。", s:{I:1, P:1}}]},
+            { t: "Q23. 牵绊：如果你必须与另一个世界建立连接，你会？", o: [{l:"A. 建立坚固的跨界桥梁，制定清晰的交流条约。", s:{T:1, J:1}}, {l:"B. 延伸出隐秘的根系，在地下与对方温柔交缠。", s:{I:1, F:1}}, {l:"C. 互相发射信号弹，保持遥远但热烈的欣赏。", s:{E:1, P:1}}, {l:"D. 慢慢渗透对方的边界，实现灵魂同化。", s:{N:1, J:1}}]},
+            { t: "Q24. 回声：消失那天，你希望世界如何记住你？", o: [{l:"A. 将你的名字刻在最高山巅，成为永恒传说。", s:{E:1, J:1}}, {l:"B. 齿轮上烙印着你的逻辑，不需要记住名字。", s:{I:1, T:1}}, {l:"C. 化作一场永不停歇的雨，滋润你爱过的土地。", s:{F:1, S:1}}, {l:"D. 成为一个神秘的都市传说，被反复猜测。", s:{N:1, P:1}}]},
+            { t: "Q25. 轮回：世界即将化为乌有，你最后一刻的感受是：", o: [{l:"A. 极致的释然与平静，实验的落幕。", s:{I:1, T:1}}, {l:"B. 狂热的期待，灰烬中将诞生新世界。", s:{E:1, N:1}}, {l:"C. 巨大的不舍与眷恋，留住最后一点温度。", s:{F:1, S:1}}, {l:"D. 一切归零的狂喜，摆脱所有规则与束缚。", s:{P:1, E:1}}]}
+        ];
+
+        // 完整 16 种性格解析数据 
+        const resultsData = {
+            "ISTJ": { title: "【 冻土 · 巨锚 · 灰熊 】", desc: "在时间的风雪中，你沉默地守望绝对的刻度。", comp: "70% 寂静冻土、20% 冰冷沉铁、10% 不为人知的笨拙柔情", anal: "你是喧嚣乱世里，最不屈的逆行者。", nat: "<b>自然意象：冻土。</b>在别人眼中，你像一片万年不化的冻土，固执且筑起高墙。但只有真正驻扎下来的人才会发现，这凛冽的冻土之下，藏着最深沉的安全感。你拒绝轻飘飘的诺言，只用岁月的长度去丈量真心。", obj: "<b>物品意象：巨锚。</b>你厌恶失控与漂泊。当世人随波逐流时，你是那枚死死咬住海床的巨锚。你把深情锻造成不可撼动的底线，哪怕独自咽下所有风雪，也要为身后的人提供最笃定的抓地力。", ani: "<b>动物意象：灰熊。</b>你厚重温和，从不轻易显露獠牙。可一旦有人触碰你誓死捍卫的领地，你便会爆发出令人敬畏的力量。" },
+            "ISFJ": { title: "【 绿洲 · 琥珀 · 亚洲象 】", desc: "在无常的荒漠里，你封存着世间最温润的旧梦。", comp: "70% 宁静绿洲、20% 凝固树脂、10% 对逝去之物的绵长执念", anal: "你是光阴流转中，最温柔的拾荒者。", nat: "<b>自然意象：绿洲。</b>你是荒漠里甘甜的绿洲，永远敞开怀抱。你习惯了退让与成全，却常常将自己干涸。你的伟大在于你明知世界荒芜，却依然选择柔软。", obj: "<b>物品意象：琥珀。</b>你会把别人的善意封存在剔透的琥珀里。你用怀旧来抵抗世界的速朽，在你的心里，所有爱过的人都拥有永恒的坐标。", ani: "<b>动物意象：亚洲象。</b>你走得很慢但每一步都印满深情。你有着庞大而细腻的内心宇宙，既能承载群体的悲欢，又在独处时默默舔舐岁月折痕。" },
+            "ESTJ": { title: "【 绝壁 · 齿轮 · 领头狼 】", desc: "在风暴的中心，你建立不容置疑的铁血苍穹。", comp: "70% 巍峨岩石、20% 轰鸣钢铁、10% 无人察觉的寂寥", anal: "你是混沌废墟上，高傲的法则建立者。", nat: "<b>自然意象：绝壁。</b>气场冷峻令人仰望。但真正懂你的人知道，绝壁挡住了最猛烈的狂风。你用强硬的铠甲，将所有的脆弱与风雨都隔绝在自己这一侧。", obj: "<b>物品意象：齿轮。</b>你极其厌恶无病呻吟的混沌。危机降临时，你依然能像巨型齿轮般精准咬合。你的浪漫是为你爱的人亲手打下一座坚不可摧的城池。", ani: "<b>动物意象：领头狼。</b>你生来就该站在巅峰。你看起来无坚不摧、永远正确，但偶尔在深夜，你也会渴望做一个不用发号施令的凡人。" },
+            "ESFJ": { title: "【 篝火 · 织锦 · 归巢燕 】", desc: "在冰冷的暗夜里，你编织着庇护众生的命运之网。", comp: "70% 跳跃火光、20% 细密金线、10% 对深渊的隐秘恐惧", anal: "你是薄凉尘世里，永远跳动的滚烫心脏。", nat: "<b>自然意象：篝火。</b>你是永不熄灭的篝火，源源不断散发光和热。你极度渴望照亮他人，甚至不惜燃烧殆尽。你太懂得如何爱人，却常忘记如何被爱。", obj: "<b>物品意象：织锦。</b>你拥有将破碎世界重新缝合的魔力。你用名为“羁绊”的金线将灵魂织入生命之锦。你存在的本身是对虚无主义最华丽的宣战。", ani: "<b>动物意象：归巢燕。</b>你对他人的情绪有着雷达般的敏锐，融入喧闹烟火，也在曲终人散时独自承受那份过于寂静的失落感。" },
+            "INFJ": { title: "【 深海 · 无字书 · 巨鲸 】", desc: "在幽蓝的深渊中，你低鸣着无人知晓的宏大悲悯。", comp: "70% 无声海渊、20% 空白纸张、10% 渴望被阅读的绝望", anal: "你是精神深水区里，孤独而古老的哲学家。", nat: "<b>自然意象：深海。</b>你温和有礼，却始终带着无法逾越的距离感。你平静时包容万物，翻涌时充满力量。你在等那个敢于潜入深渊的人。", obj: "<b>物品意象：无字书。</b>你的灵魂是一本不着一字的旷世之书，写满了对人类命运的浩瀚深情。你有着精神上的极度洁癖，不向浅薄的目光妥协。", ani: "<b>动物意象：巨鲸。</b>你承载着厚重记忆，发出 52 赫兹的孤绝频率。你始终保持着个体最深邃的孤独。你在寻找的不是旅伴，而是灵魂共振。" },
+            "INFP": { title: "【 晨雾 · 捕梦网 · 白鹿 】", desc: "在现实的边缘，你过滤着世间所有的悲伤与残缺。", comp: "70% 氤氲水汽、20% 松香藤蔓、10% 为世界落下的晶莹眼泪", anal: "你是满目疮痍的世界里，最后的造梦者。", nat: "<b>自然意象：晨雾。</b>像清晨迷雾随性柔和。但其实你把锋芒藏在灵魂最深处。一旦有人触碰你的理想国，你会爆发出最惨烈的决绝。", obj: "<b>物品意象：捕梦网。</b>你是世间苦难的超度者。你对美有着近乎痛楚的敏感，那些不切实际的幻想，是你对抗庸俗现实的最强武器。", ani: "<b>动物意象：白鹿。</b>你敏锐轻盈，灵魂比现实辽阔万倍。你不需要被世俗拯救，你本身就是降临在荒野上的一场奇迹。" },
+            "ENFJ": { title: "【 破晓 · 灯塔 · 鸿雁 】", desc: "在漫长的黑夜尽头，你用燃烧的灵魂指引黎明。", comp: "70% 炽热光芒、20% 冷硬砖石、10% 对坠落的隐秘恐惧", anal: "你是点燃庸碌众生，撕裂长夜的领航光。", nat: "<b>自然意象：破晓。</b>你像刺破黑暗的晨曦，唤醒他人灵魂里的死灰。但破晓的代价是撕裂黑夜，你把所有的阴影留给自己，将光明赠予世界。", obj: "<b>物品意象：灯塔。</b>你是悲剧般的英雄。当你把光柱打向狂风骤雨的海面时，灯塔的底部，常是一片你独自咽下的漆黑与疲惫。", ani: "<b>动物意象：鸿雁。</b>你流淌着引领者的热血。拼尽全力托举着群体向上飞翔。你渴望能有一个怀抱，允许你短暂地从高空降落。" },
+            "ENFP": { title: "【 季风 · 八音盒 · 海豚 】", desc: "在自由的流浪中，你奏响拒绝被定义的狂欢曲。", comp: "70% 湿润南风、20% 跳跃发条、10% 断崖式的虚无感", anal: "你是无聊尘世间，最自由的灵魂捕手。", nat: "<b>自然意象：季风。</b>你像一阵抓不住的风。你不愿被确定的关系囚禁，永远在追逐未知的风景。你的多变源于你对生命极度贪婪的热爱。", obj: "<b>物品意象：八音盒。</b>你像永不疲倦的造梦机。但在极度喧嚣过后，当发条停止，你会陷入深邃孤独。笑声越清脆，灵魂底色越苍凉。", ani: "<b>动物意象：海豚。</b>在社交海洋游刃有余，但交出真心的那一刻比谁都谨慎。你在等一个既能陪你疯，又能看穿你落寞的顶级灵魂。" },
+            "INTJ": { title: "【 孤岛 · 古董钟 · 雪豹 】", desc: "在时间的风雪中，你守望绝对的真理。", comp: "70% 极地霜雪、20% 精密齿轮、10% 不为人知的温柔", anal: "你是世俗洪流中，最高贵的清醒旁观者。", nat: "<b>自然意象：孤岛。</b>你有极高准入门槛。但只有真正潜入水底的人才会发现，你的根基深邃而辽阔。你不需要廉价合群，你享受高质量的独处。", obj: "<b>物品意象：古董钟。</b>你极其厌恶混沌与失序。当所有人都陷入情绪漩涡，你依然能像钟摆一样精准寻优。你是最值得信赖的压舱石。", ani: "<b>动物意象：雪豹。</b>雪豹般的隐秘与骄傲。你极少展露伤口。一旦锁定了目标，便有致命专注力。你宁愿风雪独行，也不愿失去自我。" },
+            "INTP": { title: "【 星云 · 浑天仪 · 猫头鹰 】", desc: "在浩瀚的暗夜里，你无声解构着宇宙的终极奥义。", comp: "70% 失重尘埃、20% 黄铜刻度、10% 对世俗的轻微厌倦", anal: "你是误入地球的，冷眼而深情的观测者。", nat: "<b>自然意象：星云。</b>慵懒是你的伪装，大脑无时无刻不在经历风暴。你用极度的抽离，保持着对世界最纯粹的清醒。", obj: "<b>物品意象：浑天仪。</b>你站在上帝机位审视万物甚至是自己的悲喜。你可以绝对理性地切割情感，冷酷其实是一种更高维度的浪漫。", ani: "<b>动物意象：猫头鹰。</b>不惧穷困，只怕平庸和智力匮乏。你终其一生都在寻找能与你探讨四维空间、并在灵魂深处与你博弈的智性伴侣。" },
+            "ENTJ": { title: "【 雷暴 · 棋盘 · 雄鹰 】", desc: "在撕裂苍穹的狂暴中，你执掌不容脱轨的铁血棋局。", comp: "70% 破空闪电、20% 铸铁棋子、10% 对失控的深层恐惧", anal: "你是天生为王座而生，劈开混沌的战略家。", nat: "<b>自然意象：雷暴。</b>你雷厉风行，语言一针见血。你的存在本身就是一种强大的威慑力，极少有人敢去直视你雷暴中心需要的精神密度。", obj: "<b>物品意象：棋盘。</b>你生来就是执棋者。你享受将世间万物化为资源，在命运的棋盘上杀伐决断。你不相信眼泪，只相信胜利。", ani: "<b>动物意象：雄鹰。</b>你永远在渴望更高的苍穹。强迫自己永远强大，因为你深知一旦坠落便是万丈深渊。你独自承受着高处的极寒。" },
+            "ENTP": { title: "【 耀斑 · 万花筒 · 赤狐 】", desc: "在刺目的强光下，你玩味着颠覆一切的致命魔术。", comp: "70% 致命强光、20% 几何碎片、10% 深刻的虚无主义", anal: "你是撕裂无聊世界，最迷人的异端玩家。", nat: "<b>自然意象：耀斑。</b>耀眼灼热，充满了危险的吸引力。你最喜欢把现有的规则撕得粉碎。你用不羁和幽默作为掩藏深刻洞察的铠甲。", obj: "<b>物品意象：万花筒。</b>看透万物皆空的本质，因此你只能通过不断地颠覆、重组来感受活着的温度。你的每一次破坏都是一次新生。", ani: "<b>动物意象：赤狐。</b>能随时戴上不同的人格面具，游刃有余。你极少交付真心，直到遇见能在智力上将你逼入绝境的顶级对手。" },
+            "ISTP": { title: "【 峡谷 · 折刃 · 黑豹 】", desc: "在险象环生的暗影中，你握紧一击致命的极致实用。", comp: "70% 幽暗裂谷、20% 冰冷机械、10% 绝不妥协的自由意志", anal: "你是游走在现实边缘，最冷酷迷人的独行侠。", nat: "<b>自然意象：峡谷。</b>你只相信你双手能触碰到的现实。这种极度的务实，赋予了你一种野性而致命的魅力。你不屑描绘虚无的未来。", obj: "<b>物品意象：折刃。</b>你厌恶废话，你的爱隐藏在具体的行动里。你就像一把平时蛰伏在暗处的机械折刃，一旦出鞘，便干脆利落。", ani: "<b>动物意象：黑豹。</b>你的灵魂是绝对自由的。谁也别想用道德或情感的锁链来绑架你。你随时可以隐入暗影，撕裂现实。" },
+            "ISFP": { title: "【 林泉 · 琉璃 · 猞猁 】", desc: "在波光流转的静谧里，你折射着易碎却无价的斑斓。", comp: "70% 清澈泉水、20% 彩色玻璃、10% 绝对不可碰触的审美底线", anal: "你是用全部感官在呼吸，拒绝被驯化的生活艺术家。", nat: "<b>自然意象：林泉。</b>你是安静温顺的倾听者。柔和皮囊下隐藏着极其丰富的感官宇宙。你流淌在世间，却从未被世俗的浑浊染指。", obj: "<b>物品意象：琉璃。</b>你的内核像琉璃晶莹剔透却又极易破碎。但这种易碎感构成了你最核心的艺术张力。即便被打碎，也要拼出骄傲。", ani: "<b>动物意象：猞猁。</b>优雅与戒备。外表看似可以被亲近，但骨子里你拒绝被掌控。你只为这一秒风吹过发梢的触感心动。" },
+            "ESTP": { title: "【 狂风 · 引擎 · 猎豹 】", desc: "在掀翻一切的末日里，你享受失控飙升的致命快感。", comp: "70% 狂暴气流、20% 燃烧机油、10% 对深层羁绊的隐秘逃避", anal: "你是燃烧在此时此刻，生猛而不羁的肾上腺素狂徒。", nat: "<b>自然意象：狂风。</b>浑身散发着危险却迷人的痞气。你没有过去的包袱，总能在绝境中凭借生命力突围。停滞对你而言等同于死亡。", obj: "<b>物品意象：引擎。</b>你用极致的速度掩盖灵魂深处的某种失重感。世人只看到你一路狂飙的耀眼，却极少有人敢陪你在深渊边缘同行。", ani: "<b>动物意象：猎豹。</b>你享受追逐的快感和心跳加速的瞬间。你活在每一个极致燃烧的“当下”，不问归途，你本身就是一道闪电。" },
+            "ESFP": { title: "【 极光 · 棱镜 · 极乐鸟 】", desc: "在绚烂至极的天幕下，你将世间的平庸折射成刺眼的狂欢。", comp: "70% 变幻光影、20% 水晶切面、10% 曲终人散后的极度恐慌", anal: "你是拒绝平庸、天生闪耀的舞台造梦神。", nat: "<b>自然意象：极光。</b>只要有你在，这世界就不会陷入无聊与冷场。你捕捉快乐的能力，能融化所有人的坚冰，你是天生的焦点。", obj: "<b>物品意象：棱镜。</b>世间光芒的折射者。最绚烂的背后包裹着脆弱内核。你的光芒万丈，有时只是你用来掩饰孤独的面具。", ani: "<b>动物意象：极乐鸟。</b>你一生都在为了展示最美的羽毛而起舞，极度害怕被忽视。你在等一个能让你安心收起羽毛、无言拥抱你的人。" }
+        };
+
+        let currentIdx = 0;
+        let scores = { E:0, I:0, N:0, S:0, T:0, F:0, J:0, P:0 };
+
+        function startQuiz() {
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const q = questions[currentIdx];
+            document.getElementById('progress').innerText = `Sequence ${currentIdx + 1} / 25`;
+            document.getElementById('question-text').innerText = q.t;
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            q.o.forEach((opt) => {
+                const btn = document.createElement('button');
+                btn.className = "option-btn w-full text-left p-4 rounded-2xl text-slate-300 text-sm leading-snug";
+                btn.innerText = opt.l;
+                btn.onclick = () => {
+                    for (let k in opt.s) scores[k] += opt.s[k];
+                    if (currentIdx < 24) {
+                        currentIdx++;
+                        showQuestion();
+                    } else {
+                        showResult();
+                    }
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        function showResult() {
+            const mbti = (scores.E >= scores.I ? 'E':'I') + (scores.N >= scores.S ? 'N':'S') + (scores.T >= scores.F ? 'T':'F') + (scores.J >= scores.P ? 'J':'P');
+            const data = resultsData[mbti] || resultsData["INFP"]; 
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+            document.getElementById('result-title').innerText = data.title;
+            document.getElementById('result-desc').innerText = data.desc;
+            document.getElementById('result-composition').innerText = data.comp;
+            document.getElementById('result-analysis').innerText = data.anal;
+            document.getElementById('detailed-images').innerHTML = `
+                <div><p class="text-slate-600 text-[10px] mb-2 uppercase tracking-widest font-sans">自然意象</p><p class="text-slate-200 text-[13px] leading-loose">${data.nat}</p></div>
+                <div><p class="text-slate-600 text-[10px] mb-2 uppercase tracking-widest font-sans">物品意象</p><p class="text-slate-200 text-[13px] leading-loose">${data.obj}</p></div>
+                <div><p class="text-slate-600 text-[10px] mb-2 uppercase tracking-widest font-sans">动物意象</p><p class="text-slate-200 text-[13px] leading-loose">${data.ani}</p></div>
+            `;
+        }
+    </script>
+</body>
+</html>
